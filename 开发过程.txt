@@ -1,0 +1,8 @@
+开发过程：
+
+修改 clang/CMakeLists.txt 文件 将第286行OFF改为ON，打开example文件夹下的功能
+新建目录PrintasCheck，准备将这个文件夹作为新代码的工作目录
+修改 clang/examples/CMakeLists.txt 在最后一行添加
+add_subdirectory(PrintasCheck)
+PrintasCheck里面的文件参考PrintFunctionNames下的文件编写
+修改clang/examples/PrintasCheck/CMakeLists.txt，将所有的PrintFunctionNames改成PrintasCheck

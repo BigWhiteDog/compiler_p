@@ -1236,7 +1236,8 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
     PragmaAsCheckHandler() : PragmaHandler("asCheck") { }
     virtual void HandlePragma(Preprocessor &PP, 
         PragmaIntroducerKind Introducer,
-        Token &Tok){
+        Token &Tok)
+    {
       SourceLocation loc = Tok.getLocation();
       /*PP.Lex(Tok);
       while(Tok.isNot(tok::eof))
@@ -1246,12 +1247,12 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
       }//Assume Lex is now on a newline*/
       if(Tok.isNot(tok::eof))
       {
-          asCheck::locations.push_back(Tok.getLocation());
-          std::cerr << Tok.getLocation().printToString(PP.getSourceManager()) << std::endl;
+        asCheck::locations.push_back(Tok.getLocation());
+        //std::cerr << Tok.getLocation().printToString(PP.getSourceManager()) << std::endl;
       }
       else
       {
-         std::cerr << "failed to match pragma asCheck \n";
+        std::cerr << "failed to match pragma asCheck \n";
       }
       std::cerr  << "get Pragma asCheck \n" ;
       return;
