@@ -27,31 +27,34 @@ using namespace clang;
 
 namespace {
 
-class line_ptr 
+class offset_ptr 
 {
 protected:
-	int line_number;
+	unsigned FilePos;
 	Decl * ptr;
-	// SourceLocation line_ptr;
+	// SourceLocation offset_ptr;
 	
 
-	virtual bool operator < (line_ptr t)
+	virtual bool operator < (offset_ptr t)
 	{
-		return line_number<t.line_number;
+		return FilePos<t.FilePos;
 	}	
 };
+
+typedef std::map<FileID, std::list<offset_ptr>> File_lineptr_map;
 
 class PrintFunctionsConsumer : public ASTConsumer {
 public:
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
+  		
+  		File_lineptr_map m;
   		for (asCheck::LocationManager i = asCheck::locations.begin(),e= asCheck::locations.end(); i != e; ++i)
   		{
   			const SourceLocation L=*i;
   			std::pair<FileID,unsigned> P= CI-> 
 
   		}
-  		std::map<FileID, std::list<line_ptr>> m;
 
 		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
 			const Decl *D = *i;
@@ -62,6 +65,10 @@ public:
 				llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() << "\"\n";
 		  	}
 		}
+
+
+
+		
 		return true;
   	}
 };
