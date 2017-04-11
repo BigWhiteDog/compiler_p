@@ -47,8 +47,8 @@ public:
 
   		for (asCheck::LocationManager i = asCheck::locations.begin(),e= asCheck::locations.end(); i != e; ++i)
   		{
-  			const SourceLocation *L=*i;
-  			std::pair<FileID,unsigned> P= 
+  			const SourceLocation L=*i;
+  			std::pair<FileID,unsigned> P= CI-> 
 
   		}
   		std::map<FileID, std::list<line_ptr>> m;
