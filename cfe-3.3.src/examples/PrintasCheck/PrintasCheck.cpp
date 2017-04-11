@@ -38,13 +38,7 @@ protected:
 	virtual bool operator < (line_ptr t)
 	{
 		return line_number<t.line_number;
-	}
-
-	
-public:
-	line_ptr();
-	~line_ptr();
-	
+	}	
 };
 
 class PrintFunctionsConsumer : public ASTConsumer {
@@ -54,7 +48,7 @@ public:
   		for (asCheck::LocationManager i = asCheck::locations.begin(),e= asCheck::locations.end(); i != e; ++i)
   		{
   			const SourceLocation *L=*i;
-  			std::pair<FileID>
+  			std::pair<FileID,unsigned> P= 
 
   		}
   		std::map<FileID, std::list<line_ptr>> m;
