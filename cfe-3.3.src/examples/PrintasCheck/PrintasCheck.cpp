@@ -35,16 +35,21 @@ protected:
 	// SourceLocation offset_ptr;
 	
 
-	virtual bool operator < (offset_ptr t)
+	bool operator < (offset_ptr t)
 	{
 		return FilePos<t.FilePos;
-	}	
+	}
 };
 
-typedef std::map<FileID, std::list<offset_ptr>> File_lineptr_map;
+typedef std::map<FileID, std::list<offset_ptr>> File_offsetptr_map;
 
 class PrintFunctionsConsumer : public ASTConsumer {
 public:
+	CompilerInstance &CI;
+	PrintFunctionsConsumer(CompilerInstance &CI)
+	{
+		this.CI=CI;
+	}
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
   		
@@ -76,7 +81,7 @@ public:
 class PrintasCheckAction : public PluginASTAction {
 protected:
   	ASTConsumer *CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
-		return new PrintFunctionsConsumer();
+		return new PrintFunctionsConsumer(CI);
   	}
 
   	bool ParseArgs(const CompilerInstance &CI,
