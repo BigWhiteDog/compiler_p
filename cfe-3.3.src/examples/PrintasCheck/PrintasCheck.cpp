@@ -26,28 +26,28 @@ using namespace clang;
 namespace {
 
 
-class PrintFunctionsConsumer : public ASTConsumer {
+class asCheckPrintFunctionsConsumer : public ASTConsumer {
 public:
 	CompilerInstance *CI;
-	PrintFunctionsConsumer(CompilerInstance &CI)
+	asCheckPrintFunctionsConsumer(CompilerInstance &CI)
 	{
 		this->CI=&CI;
 	}
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
   		SourceManager& sm=CI->getSourceManager();
-  		asCheck.locations;
 
   		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
-			const Decl *D = *i;
+			Decl *D = *i;
+                        
 		  	//if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
 		  	//{
-		  		SourceLocation fsl= ND->getLocation();
+		  		SourceLocation fsl = D->getLocation();
 		  		std::pair<FileID,unsigned> p = sm.getDecomposedLoc(fsl);
-	  			asCheck.locations[p.first].push_back(offset_ptr(p.second,D));
+	  			asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,D));
 		  	//}
 		}
-		for (asCheck::File_offsetptr_map::iterator i = asCheck.locations.begin(); i != asCheck.locations.end(); ++i)
+		for (asCheck::File_offsetptr_map::iterator i = asCheck::locations.begin(); i != asCheck::locations.end(); ++i)
 		{
 			i->second.sort();
 			int nest_count=0;
@@ -71,14 +71,14 @@ public:
 				{
 					SourceLocation ts=j->ptr->getLocEnd();
 					last_end_loc=(int)sm.getDecomposedLoc(ts).second;
-					if (const FunctionDecl *ND = dyn_cast<FunctionDecl>(D))
+					if (FunctionDecl *ND = dyn_cast<FunctionDecl>(j->ptr))
 					{
 						if (ND->isThisDeclarationADefinition())//check if definition
 						{
 							if (nest_count)//is asChecked
 							{
 								llvm::errs()<<ND->getNameAsString()<<":1\n";
-								asCheck.caredFuncions.push_back(ND);
+								asCheck::caredFunctions.push_back(ND);
 								nest_count--;
 							}
 							else
@@ -121,7 +121,7 @@ public:
 class PrintasCheckAction : public PluginASTAction {
 protected:
   	ASTConsumer *CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
-		return new PrintFunctionsConsumer(CI);
+		return new asCheckPrintFunctionsConsumer(CI);
   	}
 
   	bool ParseArgs(const CompilerInstance &CI,
