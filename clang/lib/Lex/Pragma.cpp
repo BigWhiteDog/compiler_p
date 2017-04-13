@@ -26,6 +26,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>
 #include <iostream>
+#include <map>
 using namespace clang;
 
 // Out-of-line destructor to provide a home for the class.
@@ -1236,25 +1237,11 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
     PragmaAsCheckHandler() : PragmaHandler("asCheck") { }
     virtual void HandlePragma(Preprocessor &PP, 
         PragmaIntroducerKind Introducer,
-        Token &Tok)
-    {
+        Token &Tok){
       SourceLocation loc = Tok.getLocation();
-      /*PP.Lex(Tok);
-      while(Tok.isNot(tok::eof))
-      {
-          if(Tok.is(tok::newline))break;
-          PP.Lex(Tok);
-      }//Assume Lex is now on a newline*/
-      if(Tok.isNot(tok::eof))
-      {
-        asCheck::locations.push_back(Tok.getLocation());
-        //std::cerr << Tok.getLocation().printToString(PP.getSourceManager()) << std::endl;
-      }
-      else
-      {
-        std::cerr << "failed to match pragma asCheck \n";
-      }
-      std::cerr  << "get Pragma asCheck \n" ;
+      std::pair<FileID,unsigned> p=PP.getSourceManager().getDecomposedLoc(loc);
+      asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
+      std::cerr<<"get #pragma asCheck\n";
       return;
     }
   };
