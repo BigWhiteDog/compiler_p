@@ -21,65 +21,38 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include <map>
-
 using namespace clang;
 
 namespace {
 
-class offset_ptr 
-{
-protected:
-	unsigned FilePos;
-	Decl * ptr;
-	bool operator < (offset_ptr t)
-	{
-		return FilePos<t.FilePos;
-	}
-	offset_ptr(unsigned FilePos,Decl *ptr)
-	{
-		this.FilePos=FilePos;
-		this.ptr=ptr;
-	}
-};
-
-typedef std::map<FileID, std::list<offset_ptr>> File_offsetptr_map;
 
 class PrintFunctionsConsumer : public ASTConsumer {
 public:
-	CompilerInstance &CI;
+	CompilerInstance *CI;
 	PrintFunctionsConsumer(CompilerInstance &CI)
 	{
-		this.CI=CI;
+		this->CI=&CI;
 	}
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
-  		SourceManager& sm=CI.getSourceManager();
-  		File_offsetptr_map m;
+  		SourceManager& sm=CI->getSourceManager();
+  		asCheck.locations;
 
-
-  		for (asCheck::LocationManager i = asCheck::locations.begin(),e= asCheck::locations.end(); i != e; ++i)
-  		{
-  			const SourceLocation L=*i;
-  			std::pair<FileID,unsigned> p = sm.getDecomposedLoc(L);
-  			m[p.first].push_back(offset_ptr(p.second,NULL));
-
-  		}
   		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
 			const Decl *D = *i;
 		  	//if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
 		  	//{
 		  		SourceLocation fsl= ND->getLocation();
 		  		std::pair<FileID,unsigned> p = sm.getDecomposedLoc(fsl);
-	  			m[p.first].push_back(offset_ptr(p.second,D));
+	  			asCheck.locations[p.first].push_back(offset_ptr(p.second,D));
 		  	//}
 		}
-		for (File_offsetptr_map::iterator i = m.begin(); i != m.end(); ++i)
+		for (asCheck::File_offsetptr_map::iterator i = asCheck.locations.begin(); i != asCheck.locations.end(); ++i)
 		{
 			i->second.sort();
 			int nest_count=0;
 			int last_end_loc=-1;
-			for(std::list<offset_ptr>::iterator j=i->second.begin(),je=i->second.end();j!= je;j++)
+			for(std::list<asCheck::offset_ptr>::iterator j=i->second.begin(),je=i->second.end();j!= je;j++)
 			{
 				if(j->ptr==NULL)//one ascheck
 				{
@@ -105,6 +78,7 @@ public:
 							if (nest_count)//is asChecked
 							{
 								llvm::errs()<<ND->getNameAsString()<<":1\n";
+								asCheck.caredFuncions.push_back(ND);
 								nest_count--;
 							}
 							else
@@ -121,7 +95,7 @@ public:
 					}
 					else
 					{
-						//raise an error: 
+						//raise an error: asCheck followed by a non-function decl
 					}
 				}
 			}
@@ -131,19 +105,15 @@ public:
 			}
 		}
 
-		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
-			const Decl *D = *i;
-		  	if (const FunctionDecl *ND = dyn_cast<FunctionDecl>(D))
-		  	{
-		  		SourceLocation fsl= ND->getLocation();
+		// for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
+		// 	const Decl *D = *i;
+		//   	if (const FunctionDecl *ND = dyn_cast<FunctionDecl>(D))
+		//   	{
+		//   		SourceLocation fsl= ND->getLocation();
 
-				llvm::errs() << ND->getNameAsString() << "\n";
-		  	}
-		}
-
-
-
-		
+		// 		llvm::errs() << ND->getNameAsString() << "\n";
+		//   	}
+		// }
 		return true;
   	}
 };
