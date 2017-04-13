@@ -67,12 +67,12 @@ public:
   		}
   		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
 			const Decl *D = *i;
-		  	if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
-		  	{
+		  	//if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
+		  	//{
 		  		SourceLocation fsl= ND->getLocation();
 		  		std::pair<FileID,unsigned> p = sm.getDecomposedLoc(fsl);
 	  			m[p.first].push_back(offset_ptr(p.second,D));
-		  	}
+		  	//}
 		}
 		for (File_offsetptr_map::iterator i = m.begin(); i != m.end(); ++i)
 		{
@@ -83,8 +83,15 @@ public:
 			{
 				if(j->ptr==NULL)//one ascheck
 				{
+					if (nest_count)//last asCheck doesn't match a func. need to raise an error
+					{
+						//raise an error: repeat asCheck
+					}
 					nest_count++;
-					if((int)j->FilePos<last_end_loc)
+					if((int)j->FilePos<last_end_loc)//if ascheck is in the block of last decl
+					{
+						//raise an error: asCheck in block
+					}
 
 				}
 				else
@@ -93,11 +100,32 @@ public:
 					last_end_loc=(int)sm.getDecomposedLoc(ts).second;
 					if (const FunctionDecl *ND = dyn_cast<FunctionDecl>(D))
 					{
-						/* code */
+						if (ND->isThisDeclarationADefinition())//check if definition
+						{
+							if (nest_count)//is asChecked
+							{
+								llvm::errs()<<ND->getNameAsString()<<":1\n";
+								nest_count--;
+							}
+							else
+							{
+								llvm::errs()<<ND->getNameAsString()<<":0\n";
+							}
+							
+						}
+						else
+						{
+							//raise an error: not a definition
+						}
+						
+					}
+					else
+					{
+						//raise an error: 
 					}
 				}
 			}
-			if (nest_count)//some ascheck doesn't match a function Decl
+			if (nest_count)//raise an error: some ascheck doesn't match a function definition
 			{
 				
 			}
@@ -109,7 +137,7 @@ public:
 		  	{
 		  		SourceLocation fsl= ND->getLocation();
 
-				llvm::errs() << ND->getNameAsString() << "\"\n";
+				llvm::errs() << ND->getNameAsString() << "\n";
 		  	}
 		}
 
