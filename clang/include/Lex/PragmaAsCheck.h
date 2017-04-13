@@ -4,6 +4,7 @@
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include <cassert>
+#include "clang/AST/AST.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/HeaderSearch.h"
@@ -18,10 +19,27 @@
 #include <algorithm>
 #include <iostream>
 #include <list>
-#include <list>
+#include <map>
 namespace asCheck{
-    std::list<clang::SourceLocation> locations;
-    typedef std::list<clang::SourceLocation>::iterator LocationManager;
+    class offset_ptr 
+    {
+      protected:
+	unsigned FilePos;
+	clang::Decl * ptr;
+      public:
+	bool operator < (offset_ptr t)
+	{
+		return FilePos<t.FilePos;
+	}
+	offset_ptr(unsigned FilePos,clang::Decl *ptr)
+	{
+		this->FilePos=FilePos;
+		this->ptr=ptr;
+	}
+    };
+    typedef std::map<clang::FileID, std::list<offset_ptr> > File_offsetptr_map;
+    File_offsetptr_map locations;
+    std::list<clang::FunctionDecl*> caredFunctions;
 }//end of namespace asCheck
 
 #endif
