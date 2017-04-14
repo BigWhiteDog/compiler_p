@@ -36,7 +36,7 @@ public:
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
   		SourceManager& sm=CI->getSourceManager();
-
+  		DiagnosticsEngine &D = CI->getDiagnostics();
   		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
 			Decl *D = *i;
                         
@@ -59,12 +59,20 @@ public:
 					if (nest_count)//last asCheck doesn't match a func. need to raise an error
 					{
 						//raise an error: repeat asCheck
-					}
-					nest_count++;
+						unsigned DiagID = D.getCustomDiagID(
+						DiagnosticsEngine::Error, "repeat asCheck");
+						D.Report(DiagID);
+						return false;
+					}		
 					if((int)j->FilePos<last_end_loc)//if ascheck is in the block of last decl
 					{
 						//raise an error: asCheck in block
+						unsigned DiagID = D.getCustomDiagID(
+						DiagnosticsEngine::Error, "asCheck in block");
+						D.Report(DiagID);
+						return false;
 					}
+					nest_count++;
 
 				}
 				else
@@ -87,33 +95,34 @@ public:
 							}
 							
 						}
-						else
+						else if (nest_count)
 						{
 							//raise an error: not a definition
+							unsigned DiagID = D.getCustomDiagID(
+							DiagnosticsEngine::Error, "asCheck followed by a function decl which isn't a definition");
+							D.Report(DiagID);
+							return false;
 						}
 						
 					}
 					else
 					{
 						//raise an error: asCheck followed by a non-function decl
+						unsigned DiagID = D.getCustomDiagID(
+						DiagnosticsEngine::Error, "asCheck followed by a non-function decl");
+						D.Report(DiagID);
+						return false;
 					}
 				}
 			}
 			if (nest_count)//raise an error: some ascheck doesn't match a function definition
 			{
-				
+				unsigned DiagID = D.getCustomDiagID(
+				DiagnosticsEngine::Error, "asCheck dosen't match any function decl");
+				D.Report(DiagID);
+				return false;
 			}
 		}
-
-		// for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
-		// 	const Decl *D = *i;
-		//   	if (const FunctionDecl *ND = dyn_cast<FunctionDecl>(D))
-		//   	{
-		//   		SourceLocation fsl= ND->getLocation();
-
-		// 		llvm::errs() << ND->getNameAsString() << "\n";
-		//   	}
-		// }
 		return true;
   	}
 };
@@ -143,7 +152,7 @@ protected:
 		return true;
   	}
 	void PrintHelp(llvm::raw_ostream& ros) {
-		ros << "Help for PrintFunctionNames plugin goes here\n";
+		ros << "Help for Print asCheck plugin goes here\n";
 	}
 
 };
