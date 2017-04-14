@@ -35,6 +35,9 @@ public:
 	}
   	virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
 
+  		asCheck::File_offsetptr_map *m;
+  		m=asCheck::getLocations_map();
+
   		SourceManager& sm=CI->getSourceManager();
   		DiagnosticsEngine &D = CI->getDiagnostics();
   		for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
@@ -44,10 +47,10 @@ public:
 		  	//{
 		  		SourceLocation fsl = D->getLocation();
 		  		std::pair<FileID,unsigned> p = sm.getDecomposedLoc(fsl);
-	  			asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,D));
+	  			(*m)[p.first].push_back(asCheck::offset_ptr(p.second,D));
 		  	//}
 		}
-		for (asCheck::File_offsetptr_map::iterator i = asCheck::locations.begin(); i != asCheck::locations.end(); ++i)
+		for (asCheck::File_offsetptr_map::iterator i = (*m).begin(); i != (*m).end(); ++i)
 		{
 			i->second.sort();
 			int nest_count=0;
@@ -86,7 +89,7 @@ public:
 							if (nest_count)//is asChecked
 							{
 								llvm::errs()<<ND->getNameAsString()<<":1\n";
-								asCheck::caredFunctions.push_back(ND);
+								asCheck::insertCaredFunctions(ND);
 								nest_count--;
 							}
 							else

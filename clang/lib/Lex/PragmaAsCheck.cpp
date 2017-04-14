@@ -21,7 +21,7 @@ namespace asCheck{
         //TO DO: implement find function is asCheck or not
         return false;
     }
-    File_offsetptr_map* getLocations()
+    File_offsetptr_map* getLocations_map()
     {
         return &locations;
     }

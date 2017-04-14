@@ -1235,6 +1235,9 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
         Token &Tok){
       SourceLocation loc = Tok.getLocation();
       std::pair<FileID,unsigned> p=PP.getSourceManager().getDecomposedLoc(loc);
+      asCheck::File_offsetptr_map* m;
+      m=asCheck::getLocations_map();
+      (*m)[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
       //asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
       llvm::errs()<<"get #pragma asCheck @"<<p.second<<"\n" ;
       return;

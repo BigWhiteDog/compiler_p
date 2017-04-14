@@ -26,7 +26,7 @@ namespace asCheck{
     };
     typedef std::map<clang::FileID, std::list<offset_ptr> > File_offsetptr_map;
     bool isThisDeclAsCheckFunction(clang::Decl*);
-    File_offsetptr_map* getLocations();
+    File_offsetptr_map* getLocations_map();
     void insertCaredFunctions(clang::FunctionDecl*);
 }//end of namespace asCheck
 
