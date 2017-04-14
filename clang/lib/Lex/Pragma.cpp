@@ -20,13 +20,10 @@
 #include "clang/Lex/LiteralSupport.h"
 #include "clang/Lex/MacroInfo.h"
 #include "clang/Lex/Preprocessor.h"
-#include "clang/Lex/PragmaAsCheck.h"
 #include "llvm/Support/CrashRecoveryContext.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>
-#include <iostream>
-#include <map>
 using namespace clang;
 
 // Out-of-line destructor to provide a home for the class.
@@ -831,7 +828,6 @@ struct PragmaPoisonHandler : public PragmaHandler {
   virtual void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
                             Token &PoisonTok) {
     PP.HandlePragmaPoison(PoisonTok);
-    //std::cerr<<" get Poison Pragma\n";
   }
 };
 
@@ -1231,7 +1227,6 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
       // to handle a _Pragma differently.
     }
   };
-
   // asCheck Pragma Handler
   struct PragmaAsCheckHandler : public PragmaHandler {
     PragmaAsCheckHandler() : PragmaHandler("asCheck") { }
@@ -1240,8 +1235,8 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
         Token &Tok){
       SourceLocation loc = Tok.getLocation();
       std::pair<FileID,unsigned> p=PP.getSourceManager().getDecomposedLoc(loc);
-      asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
-      std::cerr<<"get #pragma asCheck\n";
+      //asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
+      llvm::errs()<<"get #pragma asCheck @"<<p.second<<"\n" ;
       return;
     }
   };
