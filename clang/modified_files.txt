@@ -1,0 +1,12 @@
+### Please check whether it is all we need to change
+ParsePragma.cpp
+Parser.cpp
+ParsePragma.h
+ParseStmt.cpp
+SemaDecl.cpp
+Parser.h
+TokenKinds.def
+DiagnosticParseKinds.td
+Decl.h
+Sema.h
+### remove things we change in lib/Lex

@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "clang/Lex/Pragma.h"
+#include "clang/Lex/PragmaAsCheck.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/HeaderSearch.h"
@@ -1227,22 +1228,6 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
       // to handle a _Pragma differently.
     }
   };
-  // asCheck Pragma Handler
-  struct PragmaAsCheckHandler : public PragmaHandler {
-    PragmaAsCheckHandler() : PragmaHandler("asCheck") { }
-    virtual void HandlePragma(Preprocessor &PP, 
-        PragmaIntroducerKind Introducer,
-        Token &Tok){
-      SourceLocation loc = Tok.getLocation();
-      std::pair<FileID,unsigned> p=PP.getSourceManager().getDecomposedLoc(loc);
-      asCheck::File_offsetptr_map* m;
-      m=asCheck::getLocations_map();
-      (*m)[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
-      //asCheck::locations[p.first].push_back(asCheck::offset_ptr(p.second,NULL));
-      llvm::errs()<<"get #pragma asCheck @"<<p.second<<"\n" ;
-      return;
-    }
-  };
 }  // end anonymous namespace
 
 
@@ -1275,8 +1260,6 @@ void Preprocessor::RegisterBuiltinPragmas() {
   AddPragmaHandler("STDC", new PragmaSTDC_FENV_ACCESSHandler());
   AddPragmaHandler("STDC", new PragmaSTDC_CX_LIMITED_RANGEHandler());
   AddPragmaHandler("STDC", new PragmaSTDC_UnknownHandler());
-
-  AddPragmaHandler(new PragmaAsCheckHandler());
 
   // MS extensions.
   if (LangOpts.MicrosoftExt) {
