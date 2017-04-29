@@ -800,15 +800,19 @@ void Parser::HandlePragmaAsCheck(){
   assert(Tok.is(tok::annot_pragma_ascheck));
   //IdentifierInfo *II = static_cast<IdentifierInfo *>(Tok.getAnnotationValue());
   //StringRef funcName = II ? II->getName() : StringRef();
-  Actions.ActOnPragmaAsCheck(Tok.getLocation());
-  ConsumeToken();//Consume annot_pragma_ascheck
+  SourceLocation *NextLoc = static_cast<SourceLocation *>(Tok.getAnnotationValue());
+  llvm::errs() << NextLoc->printToString(getPreprocessor().getSourceManager()) << "-- Next Token --\n";
+  Actions.ActOnPragmaAsCheck(*NextLoc);
+  ConsumeToken();//Consume eod
 }
   
 void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
                                         PragmaIntroducerKind Introducer,
                                         Token &Tok) {
     //StringRef funcName;
-    PP.LexUnexpandedToken(Tok);
+    //llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
+    //PP.LexUnexpandedToken(Tok);
+    //llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
     /*if (Tok.isNot(tok::identifier)) {
         PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier) <<
                   "AsCheck";
@@ -821,6 +825,33 @@ void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
          "asCheck";
         return;
     }*/
+    int forward = 0;
+    int i       = 0;
+    while(!PP.LookAhead(forward).isAtStartOfLine()&&PP.LookAhead(forward).isNot(tok::eof))
+    {
+        forward++;
+    }
+    if(PP.LookAhead(forward).is(tok::eof))
+    {
+        llvm::errs() << "forbid pragma annotation\n";
+    	while(i++<forward)
+    	{
+            //Tok.setFlag(Token::NeedsCleaning);
+            llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
+            PP.LexUnexpandedToken(Tok);
+            if(Tok.is(tok::eod))
+	    {
+                llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
+            	//Tok.setFlag(Token::NeedsCleaning);
+		break;
+	    }
+    	}
+        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_eof);
+        return ;
+    }
+    llvm::errs() << "accept pragma annotation\n";
+    SourceLocation *NextLoc = new SourceLocation();
+    *NextLoc = PP.LookAhead(forward).getLocation();
     Token *Toks = (Token*) PP.getPreprocessorAllocator().Allocate(
         sizeof(Token) * 1, llvm::alignOf<Token>());
     new (Toks) Token();
@@ -828,8 +859,20 @@ void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
     Toks[0].setKind(tok::annot_pragma_ascheck);
     Toks[0].setLocation(Tok.getLocation());
     //Toks[0].setAnnotationValue(static_cast<void *>(Tok.getIdentifierInfo()));
+    Toks[0].setAnnotationValue(static_cast<void *>( NextLoc ));
+    while(i++<forward)
+    {
+	llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
+        PP.LexUnexpandedToken(Tok);
+        if(Tok.is(tok::eod))
+	{
+	        llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
+		break;
+	}
+    }
     PP.EnterTokenStream(Toks, 1, /*DisableMacroExpansion=*/true,
                       /*OwnsTokens=*/false);
+    
 }
 
 /// \brief Handle the microsoft \#pragma comment extension.
