@@ -1,18 +1,19 @@
-##===- clang/lib/Parse/Makefile ----------------------------*- Makefile -*-===##
-# 
-#                     The LLVM Compiler Infrastructure
-#
-# This file is distributed under the University of Illinois Open Source
-# License. See LICENSE.TXT for details.
-# 
-##===----------------------------------------------------------------------===##
-#
-#  This implements the Parser library for the C-Language front-end.
-#
-##===----------------------------------------------------------------------===##
+CLANG_LEVEL := ../../..
+TD_SRC_DIR = $(PROJ_SRC_DIR)/../Basic
+BUILT_SOURCES = AttrExprArgs.inc AttrLateParsed.inc
 
-CLANG_LEVEL := ../..
-LIBRARYNAME := clangParse
+TABLEGEN_INC_FILES_COMMON = 1
 
 include $(CLANG_LEVEL)/Makefile
 
+$(ObjDir)/AttrExprArgs.inc.tmp : $(TD_SRC_DIR)/Attr.td $(CLANG_TBLGEN) \
+                                   $(ObjDir)/.dir
+	$(Echo) "Building Clang attribute expression arguments table with tblgen"
+	$(Verb) $(ClangTableGen) -gen-clang-attr-expr-args-list -o $(call SYSPATH, $@) \
+		-I $(PROJ_SRC_DIR)/../../ $<
+
+$(ObjDir)/AttrLateParsed.inc.tmp : $(TD_SRC_DIR)/Attr.td $(CLANG_TBLGEN) \
+                                   $(ObjDir)/.dir
+	$(Echo) "Building Clang attribute late-parsed table with tblgen"
+	$(Verb) $(ClangTableGen) -gen-clang-attr-late-parsed-list -o $(call SYSPATH, $@) \
+		-I $(PROJ_SRC_DIR)/../../ $<

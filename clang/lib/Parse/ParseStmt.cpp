@@ -297,6 +297,10 @@ Retry:
     ConsumeToken();
     return StmtError();
 
+  case tok::annot_pragma_ascheck:
+    Diag(Tok, diag::warn_pragma_ascheck_unexpected_location);
+    ConsumeToken();
+    return StmtEmpty();
   case tok::annot_pragma_opencl_extension:
     ProhibitAttributes(Attrs);
     HandlePragmaOpenCLExtension();
@@ -760,6 +764,9 @@ void Parser::ParseCompoundStatementLeadingPragmas() {
       break;
     case tok::annot_pragma_fp_contract:
       HandlePragmaFPContract();
+      break;
+    case tok::annot_pragma_ascheck:
+      HandlePragmaAsCheck();
       break;
     default:
       checkForPragmas = false;

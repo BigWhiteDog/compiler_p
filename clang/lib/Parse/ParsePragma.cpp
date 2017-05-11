@@ -796,62 +796,77 @@ PragmaOpenMPHandler::HandlePragma(Preprocessor &PP,
                       /*DisableMacroExpansion=*/true, /*OwnsTokens=*/true);
 }
 void Parser::HandlePragmaAsCheck(){
-  // FIXME: not implemented in desired way
   assert(Tok.is(tok::annot_pragma_ascheck));
-  //IdentifierInfo *II = static_cast<IdentifierInfo *>(Tok.getAnnotationValue());
-  //StringRef funcName = II ? II->getName() : StringRef();
-  SourceLocation *NextLoc = static_cast<SourceLocation *>(Tok.getAnnotationValue());
-  llvm::errs() << NextLoc->printToString(getPreprocessor().getSourceManager()) << "-- Next Token --\n";
-  Actions.ActOnPragmaAsCheck(*NextLoc);
+
+  int forward = 1;
+  const Token *ahd = &GetLookAheadToken(forward);
+  static int i=0;
+  i++;
+  while(ahd->isNot(tok::eof)&&!ahd->getLocation().isValid())
+  {
+    //llvm::errs() << i << ":" << ahd->getName() <<  "-- Next Token --\n" ;
+    llvm::errs() << i << ":" << forward << "\n" ;
+    ahd = &GetLookAheadToken(++forward);
+  }
+  //getPreprocessor().DumpLocation(Tok.getLocation());llvm::errs() << "-- current Token --\n";
+  //getPreprocessor().DumpLocation(ahd->getLocation());llvm::errs() << "-- Next Token --";
+  //llvm::errs()<<":"<<ahd->getName()<<"|Flag<"<<ahd->getFlags()<<">\n";
+  //getPreprocessor().DumpLocation(ahd.getLocation());
+  //SourceLocation *NextLoc = static_cast<SourceLocation *>(Tok.getAnnotationValue());
+  //llvm::errs() << NextLoc->printToString(getPreprocessor().getSourceManager()) << "-- Next Token --\n";
+  Actions.ActOnPragmaAsCheck(ahd->getLocation());
   ConsumeToken();//Consume eod
 }
   
 void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
                                         PragmaIntroducerKind Introducer,
                                         Token &Tok) {
-    //StringRef funcName;
-    //llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-    //PP.LexUnexpandedToken(Tok);
-    //llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-    /*if (Tok.isNot(tok::identifier)) {
-        PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier) <<
-                  "AsCheck";
-          return;
-    }
-    funcName = Tok.getIdentifierInfo() ? Tok.getIdentifierInfo()->getName() : StringRef();
-    llvm::errs() << "get funcName after asCheck: " << funcName << "\n";
-    if (funcName == StringRef()) {
-        PP.Diag(Tok.getLocation(), diag::warn_pragma_expected_identifier) <<
-         "asCheck";
-        return;
-    }*/
-    int forward = 0;
     int i       = 0;
-    while(!PP.LookAhead(forward).isAtStartOfLine()&&PP.LookAhead(forward).isNot(tok::eof))
+    /*llvm::errs()<< "---- token stream start ---- \n";
+    while(!PP.LookAhead(i).is(tok::eof))
     {
-        forward++;
+        PP.DumpToken(PP.LookAhead(i));
+	llvm::errs()<<":"<<PP.LookAhead(i).getName()<<"|Flag<"<<PP.LookAhead(i).getFlags()<<">\n";
+        i++;
     }
-    if(PP.LookAhead(forward).is(tok::eof))
+    if(PP.LookAhead(i).isNot(tok::eof))
     {
-        llvm::errs() << "forbid pragma annotation\n";
-    	while(i++<forward)
-    	{
-            //Tok.setFlag(Token::NeedsCleaning);
-            llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-            PP.LexUnexpandedToken(Tok);
-            if(Tok.is(tok::eod))
-	    {
-                llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-            	//Tok.setFlag(Token::NeedsCleaning);
-		break;
-	    }
-    	}
-        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_eof);
+         llvm::errs()<< "!!!! ridiculous missing eof !!!! \n";
+         PP.DumpToken(PP.LookAhead(i+1));
+         llvm::errs()<< " is next token \n";
+    }
+    llvm::errs()<<tok::getTokenName(PP.LookAhead(i).getKind())<<":"<<PP.LookAhead(i).getName()<<"|Flag<"<<PP.LookAhead(i).getFlags()<<">\n";
+    PP.DumpLocation(PP.LookAhead(i).getLocation());
+    llvm::errs()<< "---- token stream end   ---- \n";
+    i = 0;*/
+    //while(PP.LookAhead(i++).isNot(tok::eof));
+    i=0;
+    //const Token* ahd = NULL;
+    while(true)
+    {
+        PP.LexUnexpandedToken(Tok);
+        if(Tok.is(tok::eod))break;
+        i++;
+    }
+    if(i>0)
+    {
+        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_token);
         return ;
     }
-    llvm::errs() << "accept pragma annotation\n";
-    SourceLocation *NextLoc = new SourceLocation();
-    *NextLoc = PP.LookAhead(forward).getLocation();
+    //ahd = & PP.LookAhead(0);
+    /*if(PP.LookAhead(0).is(tok::eof))
+    {
+        //PP.DumpLocation(Tok.getLocation());
+        //PP.DumpLocation(PP.LookAhead(0).getLocation());
+        //PP.DumpLocation(PP.getSourceManager().getLocForEndOfFile((PP.getSourceManager().getFileID(PP.LookAhead(0).getLocation()))));
+        //llvm::errs()<< " three locations \n";
+        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_eof);
+        return ;
+    }*/
+    //llvm::errs() << "accept pragma annotation\n";
+    /*SourceLocation *NextLoc = new SourceLocation();
+    
+    *NextLoc = ahd->getLocation();*/
     Token *Toks = (Token*) PP.getPreprocessorAllocator().Allocate(
         sizeof(Token) * 1, llvm::alignOf<Token>());
     new (Toks) Token();
@@ -859,17 +874,7 @@ void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
     Toks[0].setKind(tok::annot_pragma_ascheck);
     Toks[0].setLocation(Tok.getLocation());
     //Toks[0].setAnnotationValue(static_cast<void *>(Tok.getIdentifierInfo()));
-    Toks[0].setAnnotationValue(static_cast<void *>( NextLoc ));
-    while(i++<forward)
-    {
-	llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-        PP.LexUnexpandedToken(Tok);
-        if(Tok.is(tok::eod))
-	{
-	        llvm::errs()<<tok::getTokenName(Tok.getKind())<<":"<<Tok.getName()<<"|Flag<"<<Tok.getFlags()<<">\n";
-		break;
-	}
-    }
+    //Toks[0].setAnnotationValue(static_cast<void *>( NextLoc ));
     PP.EnterTokenStream(Toks, 1, /*DisableMacroExpansion=*/true,
                       /*OwnsTokens=*/false);
     

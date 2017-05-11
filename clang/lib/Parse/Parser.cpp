@@ -566,6 +566,7 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result) {
 
   Result = DeclGroupPtrTy();
   if (Tok.is(tok::eof)) {
+    getActions().ActOnDropingAsCheck(Tok.getLocation());
     // Late template parsing can begin.
     if (getLangOpts().DelayedTemplateParsing)
       Actions.SetLateTemplateParser(LateTemplateParserCallback, this);
