@@ -794,11 +794,9 @@ def err_pragma_comment_unknown_kind : Error<"unknown kind of pragma comment">;
 def warn_pragma_ascheck_expected_func_def : Warning<
   "expected function defination after pragma asCheck - ignoring">;
 def warn_pragma_ascheck_unexpected_eof : Warning<
-  "pragma asCheck should followed by a function defination but meet end of file - ignoring">;
+  "pragma asCheck should followed by a function defination but meet end of file">;
 def warn_pragma_ascheck_unexpected_location : Warning<
   "pragma asCheck should be declare in front of a function defination - ignoring">;
-def warn_pragma_ascheck_unexpected_token : Warning<
-  "pragma asCheck should stand alone without following components - ignoring">;
 
 // OpenCL Section 6.8.g
 def err_not_opencl_storage_class_specifier : Error<
