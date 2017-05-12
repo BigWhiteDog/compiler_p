@@ -17,17 +17,20 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "llvm/Support/raw_ostream.h"
+#include "clang/Lex/PragmaAsCheck.h"
 using namespace clang;
 
 namespace {
-
+ 
 class PrintFunctionsConsumer : public ASTConsumer {
 public:
   virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
     for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; ++i) {
       const Decl *D = *i;
-      if (const NamedDecl *ND = dyn_cast<NamedDecl>(D))
-        llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() << "\"\n";
+      const NamedDecl *ND = dyn_cast<NamedDecl>(D);
+      const FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
+      if (ND&&FD)
+        llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() <<"\":" << FD->isAsCheck() << "\n";
     }
 
     return true;

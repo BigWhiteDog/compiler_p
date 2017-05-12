@@ -17,6 +17,8 @@
 #include "clang/Parse/Parser.h"
 #include "clang/Sema/Scope.h"
 #include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/raw_ostream.h"
+
 using namespace clang;
 
 /// \brief Handle the annotation token produced for #pragma unused(...)
@@ -792,6 +794,90 @@ PragmaOpenMPHandler::HandlePragma(Preprocessor &PP,
   std::copy(Pragma.begin(), Pragma.end(), Toks);
   PP.EnterTokenStream(Toks, Pragma.size(),
                       /*DisableMacroExpansion=*/true, /*OwnsTokens=*/true);
+}
+void Parser::HandlePragmaAsCheck(){
+  assert(Tok.is(tok::annot_pragma_ascheck));
+
+  int forward = 1;
+  const Token *ahd = &GetLookAheadToken(forward);
+  static int i=0;
+  i++;
+  while(ahd->isNot(tok::eof)&&!ahd->getLocation().isValid())
+  {
+    //llvm::errs() << i << ":" << ahd->getName() <<  "-- Next Token --\n" ;
+    llvm::errs() << i << ":" << forward << "\n" ;
+    ahd = &GetLookAheadToken(++forward);
+  }
+  //getPreprocessor().DumpLocation(Tok.getLocation());llvm::errs() << "-- current Token --\n";
+  //getPreprocessor().DumpLocation(ahd->getLocation());llvm::errs() << "-- Next Token --";
+  //llvm::errs()<<":"<<ahd->getName()<<"|Flag<"<<ahd->getFlags()<<">\n";
+  //getPreprocessor().DumpLocation(ahd.getLocation());
+  //SourceLocation *NextLoc = static_cast<SourceLocation *>(Tok.getAnnotationValue());
+  //llvm::errs() << NextLoc->printToString(getPreprocessor().getSourceManager()) << "-- Next Token --\n";
+  Actions.ActOnPragmaAsCheck(ahd->getLocation());
+  ConsumeToken();//Consume eod
+}
+  
+void PragmaAsCheckHandler::HandlePragma(Preprocessor &PP,
+                                        PragmaIntroducerKind Introducer,
+                                        Token &Tok) {
+    int i       = 0;
+    /*llvm::errs()<< "---- token stream start ---- \n";
+    while(!PP.LookAhead(i).is(tok::eof))
+    {
+        PP.DumpToken(PP.LookAhead(i));
+	llvm::errs()<<":"<<PP.LookAhead(i).getName()<<"|Flag<"<<PP.LookAhead(i).getFlags()<<">\n";
+        i++;
+    }
+    if(PP.LookAhead(i).isNot(tok::eof))
+    {
+         llvm::errs()<< "!!!! ridiculous missing eof !!!! \n";
+         PP.DumpToken(PP.LookAhead(i+1));
+         llvm::errs()<< " is next token \n";
+    }
+    llvm::errs()<<tok::getTokenName(PP.LookAhead(i).getKind())<<":"<<PP.LookAhead(i).getName()<<"|Flag<"<<PP.LookAhead(i).getFlags()<<">\n";
+    PP.DumpLocation(PP.LookAhead(i).getLocation());
+    llvm::errs()<< "---- token stream end   ---- \n";
+    i = 0;*/
+    //while(PP.LookAhead(i++).isNot(tok::eof));
+    i=0;
+    //const Token* ahd = NULL;
+    while(true)
+    {
+        PP.LexUnexpandedToken(Tok);
+        if(Tok.is(tok::eod))break;
+        i++;
+    }
+    if(i>0)
+    {
+        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_token);
+        return ;
+    }
+    //ahd = & PP.LookAhead(0);
+    /*if(PP.LookAhead(0).is(tok::eof))
+    {
+        //PP.DumpLocation(Tok.getLocation());
+        //PP.DumpLocation(PP.LookAhead(0).getLocation());
+        //PP.DumpLocation(PP.getSourceManager().getLocForEndOfFile((PP.getSourceManager().getFileID(PP.LookAhead(0).getLocation()))));
+        //llvm::errs()<< " three locations \n";
+        PP.Diag(Tok,diag::warn_pragma_ascheck_unexpected_eof);
+        return ;
+    }*/
+    //llvm::errs() << "accept pragma annotation\n";
+    /*SourceLocation *NextLoc = new SourceLocation();
+    
+    *NextLoc = ahd->getLocation();*/
+    Token *Toks = (Token*) PP.getPreprocessorAllocator().Allocate(
+        sizeof(Token) * 1, llvm::alignOf<Token>());
+    new (Toks) Token();
+    Toks[0].startToken();
+    Toks[0].setKind(tok::annot_pragma_ascheck);
+    Toks[0].setLocation(Tok.getLocation());
+    //Toks[0].setAnnotationValue(static_cast<void *>(Tok.getIdentifierInfo()));
+    //Toks[0].setAnnotationValue(static_cast<void *>( NextLoc ));
+    PP.EnterTokenStream(Toks, 1, /*DisableMacroExpansion=*/true,
+                      /*OwnsTokens=*/false);
+    
 }
 
 /// \brief Handle the microsoft \#pragma comment extension.

@@ -120,6 +120,13 @@ public:
   virtual void HandlePragma(Preprocessor &PP, PragmaIntroducerKind Introducer,
                             Token &FirstToken);
 };
+// asCheck Pragma Handler
+  struct PragmaAsCheckHandler : public PragmaHandler {
+    PragmaAsCheckHandler() : PragmaHandler("asCheck") {}
+    virtual void HandlePragma(Preprocessor &PP, 
+        PragmaIntroducerKind Introducer,
+        Token &Tok);
+  };
 
 }  // end namespace clang
 

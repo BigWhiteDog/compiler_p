@@ -110,6 +110,9 @@ Parser::Parser(Preprocessor &pp, Sema &actions, bool skipFunctionBodies)
   CommentSemaHandler.reset(new ActionCommentHandler(actions));
   PP.addCommentHandler(CommentSemaHandler.get());
 
+  AsCheckHandler.reset(new PragmaAsCheckHandler());
+  PP.AddPragmaHandler(AsCheckHandler.get());
+
   PP.setCodeCompletionHandler(*this);
 }
 
@@ -449,6 +452,9 @@ Parser::~Parser() {
   PP.RemovePragmaHandler("STDC", FPContractHandler.get());
   FPContractHandler.reset();
 
+  PP.RemovePragmaHandler(AsCheckHandler.get());
+  AsCheckHandler.reset();
+
   PP.removeCommentHandler(CommentSemaHandler.get());
 
   PP.clearCodeCompletionHandler();
@@ -560,6 +566,7 @@ bool Parser::ParseTopLevelDecl(DeclGroupPtrTy &Result) {
 
   Result = DeclGroupPtrTy();
   if (Tok.is(tok::eof)) {
+    getActions().ActOnDropingAsCheck(Tok.getLocation());
     // Late template parsing can begin.
     if (getLangOpts().DelayedTemplateParsing)
       Actions.SetLateTemplateParser(LateTemplateParserCallback, this);
@@ -637,6 +644,9 @@ Parser::ParseExternalDeclaration(ParsedAttributesWithRange &attrs,
     return DeclGroupPtrTy();
   case tok::annot_pragma_fp_contract:
     HandlePragmaFPContract();
+    return DeclGroupPtrTy();
+  case tok::annot_pragma_ascheck:
+    HandlePragmaAsCheck();
     return DeclGroupPtrTy();
   case tok::annot_pragma_opencl_extension:
     HandlePragmaOpenCLExtension();

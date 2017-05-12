@@ -14,5 +14,19 @@
 #include <iostream>
 #include <list>
 namespace asCheck{
-    
+    File_offsetptr_map locations;
+    std::list<clang::FunctionDecl*> caredFunctions;
+    bool isThisDeclAsCheckFunction(clang::Decl* D)
+    {
+        //TO DO: implement find function is asCheck or not
+        return false;
+    }
+    File_offsetptr_map* getLocations_map()
+    {
+        return &locations;
+    }
+    void insertCaredFunctions(clang::FunctionDecl* FD)
+    {
+        caredFunctions.push_back(FD);
+    }
 }//end of namespace asCheck

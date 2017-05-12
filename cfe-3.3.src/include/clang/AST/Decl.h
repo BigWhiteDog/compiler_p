@@ -1385,7 +1385,7 @@ private:
   /// parameters of this function.  This is null if a prototype or if there are
   /// no formals.
   ParmVarDecl **ParamInfo;
-
+  
   /// DeclsInPrototypeScope - Array of pointers to NamedDecls for
   /// decls defined in the function prototype that are not parameters. E.g.
   /// 'enum Y' in 'void f(enum Y {AA} x) {}'.
@@ -1409,7 +1409,7 @@ private:
   bool HasImplicitReturnZero : 1;
   bool IsLateTemplateParsed : 1;
   bool IsConstexpr : 1;
-
+  bool HasAsCheck : 1;
   /// \brief Indicates if the function was a definition but its body was
   /// skipped.
   unsigned HasSkippedBody : 1;
@@ -1673,6 +1673,9 @@ public:
   /// Whether this is a (C++11) constexpr function or constexpr constructor.
   bool isConstexpr() const { return IsConstexpr; }
   void setConstexpr(bool IC) { IsConstexpr = IC; }
+
+  bool isAsCheck() const { return HasAsCheck; }
+  void setAsCheck(bool asCheck) { HasAsCheck = asCheck; }
 
   /// \brief Whether this function has been deleted.
   ///

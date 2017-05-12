@@ -41,9 +41,12 @@
 #include "clang/Sema/ScopeInfo.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/Triple.h"
+#include "llvm/Support/raw_ostream.h"
 #include <algorithm>
 #include <cstring>
 #include <functional>
+#include <map>
+#include <list>
 using namespace clang;
 using namespace sema;
 
@@ -8570,7 +8573,53 @@ void Sema::ActOnFinishKNRParamDeclarations(Scope *S, Declarator &D,
     }
   }
 }
+void Sema::ActOnPragmaAsCheck(SourceLocation Loc){
+  std::pair<FileID,unsigned> deLoc = getSourceManager().getDecomposedLoc(Loc);
+  AsCheckML[deLoc.first].push_back(deLoc.second);
+}
 
+void Sema::ActOnPendingAsCheck(FunctionDecl* FD)
+{
+  if(FD){
+    std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(FD->getLocStart());
+    std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
+    {
+        //llvm::errs() << "get FunctionDecl      @ " << p.second << "\n";
+        //llvm::errs() << "get FunctionDecl Start@ " << ps.second << "\n";
+        //llvm::errs() << "Accumulated " << Locs->size() << "pragmas to match" << "\n";
+        //llvm::errs() << "get FunctionDecl End  @ " << pe.second << "\n";
+        for(std::list<unsigned>::iterator i = Locs->begin() ; i != Locs -> end() ; Locs->erase(i++) )
+        {
+            //llvm::errs() << "for now we have asCheck pragmas @ " << *i << "\n";
+            if(ps.second == *i)
+            {
+		//llvm::errs() << "match pragma asCheck @ " << *i << "\n";
+                FD->setAsCheck(true);
+	    }
+	    else
+	    {
+		Diag(getSourceManager().getLocForStartOfFile(ps.first).getLocWithOffset(*i),diag::warn_pragma_ascheck_expected_func_def);
+	    }
+        }
+    }
+    /*if(FD->isAsCheck())
+    {
+        llvm::errs() << "Seems that flag is set for now \n";
+    }*/
+  }
+}
+void Sema::ActOnDropingAsCheck(SourceLocation loc)
+{
+    std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(loc);
+    std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
+    {
+        //llvm::errs() << "get FunctionDecl Start@ " << ps.second << "\n";
+        for(std::list<unsigned>::iterator i = Locs->begin() ; i != Locs -> end() ; Locs->erase(i++) )
+        {
+	    Diag(getSourceManager().getLocForStartOfFile(ps.first).getLocWithOffset(*i),diag::warn_pragma_ascheck_expected_func_def);
+        }
+    }
+}
 Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Declarator &D) {
   assert(getCurFunctionDecl() == 0 && "Function parsing confused");
   assert(D.isFunctionDeclarator() && "Not a function declarator!");
@@ -8578,6 +8627,7 @@ Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Declarator &D) {
 
   D.setFunctionDefinitionKind(FDK_Definition);
   Decl *DP = HandleDeclarator(ParentScope, D, MultiTemplateParamsArg());
+  ActOnPendingAsCheck(dyn_cast<FunctionDecl>(DP));
   return ActOnStartOfFunctionDef(FnBodyScope, DP);
 }
 

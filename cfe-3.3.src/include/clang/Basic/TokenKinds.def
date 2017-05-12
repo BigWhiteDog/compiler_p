@@ -649,7 +649,6 @@ ANNOTATION(pragma_redefine_extname)
 // The lexer produces these so that they only take effect when the parser
 // handles them.
 ANNOTATION(pragma_fp_contract)
-
 // Annotation for #pragma OPENCL EXTENSION...
 // The lexer produces these so that they only take effect when the parser
 // handles them.
@@ -661,6 +660,8 @@ ANNOTATION(pragma_opencl_extension)
 ANNOTATION(pragma_openmp)
 ANNOTATION(pragma_openmp_end)
 
+// handles #pragma asCheck directives
+ANNOTATION(pragma_ascheck)
 #undef ANNOTATION
 #undef TESTING_KEYWORD
 #undef OBJC2_AT_KEYWORD
