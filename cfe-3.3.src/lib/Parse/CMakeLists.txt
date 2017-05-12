@@ -1,9 +1,36 @@
-clang_tablegen(AttrExprArgs.inc -gen-clang-attr-expr-args-list
-  -I ${CMAKE_CURRENT_SOURCE_DIR}/../../
-  SOURCE ../Basic/Attr.td
-  TARGET ClangAttrExprArgs)
+add_clang_library(clangParse
+  ParseAST.cpp
+  ParseCXXInlineMethods.cpp
+  ParseDecl.cpp
+  ParseDeclCXX.cpp
+  ParseExpr.cpp
+  ParseExprCXX.cpp
+  ParseInit.cpp
+  ParseObjc.cpp
+  ParseOpenMP.cpp
+  ParsePragma.cpp
+  ParseStmt.cpp
+  ParseTemplate.cpp
+  ParseTentative.cpp
+  Parser.cpp
+  )
 
-clang_tablegen(AttrLateParsed.inc -gen-clang-attr-late-parsed-list
-  -I ${CMAKE_CURRENT_SOURCE_DIR}/../../
-  SOURCE ../Basic/Attr.td
-  TARGET ClangAttrLateParsed)
+add_dependencies(clangParse
+  ClangAttrClasses
+  ClangAttrExprArgs
+  ClangAttrLateParsed
+  ClangAttrList
+  ClangAttrParsedAttrList
+  ClangCommentNodes
+  ClangDeclNodes
+  ClangDiagnosticCommon
+  ClangDiagnosticParse
+  ClangStmtNodes
+  )
+
+target_link_libraries(clangParse
+  clangBasic
+  clangAST
+  clangLex
+  clangSema
+  )

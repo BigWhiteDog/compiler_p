@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "clang/Lex/Pragma.h"
-#include "clang/Lex/PragmaAsCheck.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Lex/HeaderSearch.h"
@@ -23,7 +22,6 @@
 #include "clang/Lex/Preprocessor.h"
 #include "llvm/Support/CrashRecoveryContext.h"
 #include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
 #include <algorithm>
 using namespace clang;
 
@@ -1228,6 +1226,7 @@ struct PragmaARCCFCodeAuditedHandler : public PragmaHandler {
       // to handle a _Pragma differently.
     }
   };
+
 }  // end anonymous namespace
 
 
