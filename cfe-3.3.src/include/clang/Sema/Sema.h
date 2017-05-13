@@ -49,7 +49,8 @@
 #include "llvm/MC/MCParser/MCAsmParser.h"
 #include <deque>
 #include <string>
-
+#include <list>
+#include <map>
 namespace llvm {
   class APSInt;
   template <typename ValueT> struct DenseMapInfo;
@@ -217,7 +218,8 @@ class Sema {
     // with internal linkage.
     return !Old->isHidden() || New->hasExternalLinkage();
   }
-
+  
+  std::map<FileID,std::list<unsigned> > AsCheckML;
 public:
   typedef OpaquePtr<DeclGroupRef> DeclGroupPtrTy;
   typedef OpaquePtr<TemplateName> TemplateTy;
@@ -1450,6 +1452,13 @@ public:
                                          SourceLocation EqualLoc,
                                          SourceLocation ArgLoc);
   void ActOnParamDefaultArgumentError(Decl *param);
+
+ //ActOn Pragma AsCheck
+  //void ActOnPragmaAsCheck(StringRef funcName);
+  void ActOnPragmaAsCheck(SourceLocation Loc);
+  void ActOnPendingAsCheck(FunctionDecl* FD);
+  void ActOnDropingAsCheck(SourceLocation Loc);
+
   bool SetParamDefaultArgument(ParmVarDecl *Param, Expr *DefaultArg,
                                SourceLocation EqualLoc);
 
