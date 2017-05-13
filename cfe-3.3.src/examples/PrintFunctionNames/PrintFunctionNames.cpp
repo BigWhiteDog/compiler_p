@@ -17,7 +17,6 @@
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "llvm/Support/raw_ostream.h"
-#include "clang/Lex/PragmaAsCheck.h"
 using namespace clang;
 
 namespace {
@@ -30,7 +29,10 @@ public:
       const NamedDecl *ND = dyn_cast<NamedDecl>(D);
       const FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
       if (ND&&FD)
-        llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() <<"\":" << FD->isAsCheck() << "\n";
+      {
+        //llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() <<"\":" << FD->isAsCheck() << "\n";
+        llvm::errs() << ND->getNameAsString() <<":" << FD->isAsCheck() << "\n";
+      }
     }
 
     return true;
