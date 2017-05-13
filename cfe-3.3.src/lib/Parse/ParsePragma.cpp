@@ -805,16 +805,23 @@ void Parser::HandlePragmaAsCheck(){
   while(ahd->isNot(tok::eof)&&!ahd->getLocation().isValid())
   {
     //llvm::errs() << i << ":" << ahd->getName() <<  "-- Next Token --\n" ;
-    llvm::errs() << i << ":" << forward << "\n" ;
+    //llvm::errs() << i << ":" << forward << "\n" ;
     ahd = &GetLookAheadToken(++forward);
   }
+
+  std::pair<FileID,unsigned> ahdLoc = getPreprocessor().getSourceManager().getDecomposedLoc(ahd->getLocation());
+  std::pair<FileID,unsigned> curLoc = getPreprocessor().getSourceManager().getDecomposedLoc(Tok.getLocation());
+  if(curLoc.first!=ahdLoc.first)
+  {
+    Diag(Tok,diag::warn_pragma_ascheck_unexpected_eof);
+  }
+  else Actions.ActOnPragmaAsCheck(ahd->getLocation());
   //getPreprocessor().DumpLocation(Tok.getLocation());llvm::errs() << "-- current Token --\n";
   //getPreprocessor().DumpLocation(ahd->getLocation());llvm::errs() << "-- Next Token --";
   //llvm::errs()<<":"<<ahd->getName()<<"|Flag<"<<ahd->getFlags()<<">\n";
   //getPreprocessor().DumpLocation(ahd.getLocation());
   //SourceLocation *NextLoc = static_cast<SourceLocation *>(Tok.getAnnotationValue());
   //llvm::errs() << NextLoc->printToString(getPreprocessor().getSourceManager()) << "-- Next Token --\n";
-  Actions.ActOnPragmaAsCheck(ahd->getLocation());
   ConsumeToken();//Consume eod
 }
   
