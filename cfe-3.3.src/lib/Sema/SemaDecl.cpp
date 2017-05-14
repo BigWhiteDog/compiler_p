@@ -8610,13 +8610,15 @@ void Sema::ActOnPendingAsCheck(FunctionDecl* FD)
 }
 void Sema::ActOnDropingAsCheck(SourceLocation loc)
 {
-    std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(loc);
-    std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
+    //std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(loc);
+    //std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
+    for( std::map<FileID,std::list<unsigned> >::iterator kvpair = AsCheckML.begin(); kvpair != AsCheckML.end() ; kvpair++)
     {
+        std::list<unsigned>* Locs = &kvpair->second;
         //llvm::errs() << "get FunctionDecl Start@ " << ps.second << "\n";
         for(std::list<unsigned>::iterator i = Locs->begin() ; i != Locs -> end() ; Locs->erase(i++) )
         {
-	    Diag(getSourceManager().getLocForStartOfFile(ps.first).getLocWithOffset(*i),diag::warn_pragma_ascheck_expected_func_def);
+	    Diag(getSourceManager().getLocForStartOfFile(kvpair->first).getLocWithOffset(*i),diag::warn_pragma_ascheck_expected_func_def);
         }
     }
 }

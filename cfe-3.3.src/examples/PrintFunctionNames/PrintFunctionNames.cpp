@@ -28,7 +28,7 @@ public:
       const Decl *D = *i;
       const NamedDecl *ND = dyn_cast<NamedDecl>(D);
       const FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
-      if (ND&&FD)
+      if (ND&&FD&&FD->isThisDeclarationADefinition())
       {
         //llvm::errs() << "top-level-decl: \"" << ND->getNameAsString() <<"\":" << FD->isAsCheck() << "\n";
         llvm::errs() << ND->getNameAsString() <<":" << FD->isAsCheck() << "\n";
