@@ -8581,6 +8581,7 @@ void Sema::ActOnPragmaAsCheck(SourceLocation Loc){
 void Sema::ActOnPendingAsCheck(FunctionDecl* FD)
 {
   if(FD){
+    FD->setAsCheck(false);
     std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(FD->getLocStart());
     std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
     {
