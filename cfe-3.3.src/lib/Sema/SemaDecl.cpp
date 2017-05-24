@@ -8625,16 +8625,18 @@ void Sema::ActOnDropingAsCheck(SourceLocation loc)
 }
 void Sema::ActOnDoingAsCheck(FunctionDecl* FD,Stmt* Body)
 {
+    if(FD&&Body)
+    {
+        CheckForVoidParam         (FD, Body);
+        CheckForUnboundedArray    (FD, Body);
+        CheckForEmptyElseStmt     (FD, Body);
+        CheckForBreakInSwitchStmt (FD, Body);
+        CheckForMultiLevelPointer (FD, Body);
     
-    CheckForVoidParam         (FD, Body);
-    CheckForUnboundedArray    (FD, Body);
-    CheckForEmptyElseStmt     (FD, Body);
-    CheckForBreakInSwitchStmt (FD, Body);
-    CheckForMultiLevelPointer (FD, Body);
-    
-    CheckForUnsignedVarAssigningMinusValue(FD, Body);
-    CheckForSignedVarUsingBitOperation    (FD, Body);
-    CheckForUnconstrainedArray            (FD, Body);
+        CheckForUnsignedVarAssigningMinusValue(FD, Body);
+        CheckForSignedVarUsingBitOperation    (FD, Body);
+        CheckForUnconstrainedArray            (FD, Body);
+    }
     return ;
 }
 Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Declarator &D) {
