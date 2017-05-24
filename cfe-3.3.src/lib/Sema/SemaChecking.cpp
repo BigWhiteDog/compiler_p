@@ -6893,3 +6893,36 @@ void Sema::CheckArgumentWithTypeTag(const ArgumentWithTypeTagAttr *Attr,
         << ArgumentExpr->getSourceRange()
         << TypeTagExpr->getSourceRange();
 }
+
+bool Sema::CheckForVoidParam(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForUnsignedVarAssigningMinusValue(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForSignedVarUsingBitOperation(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}
+bool Sema::CheckForUnconstrainedArray(FunctionDecl* FD,Stmt* Body)
+{
+    return false;
+}

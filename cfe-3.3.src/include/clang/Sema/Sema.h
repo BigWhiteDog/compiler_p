@@ -1458,6 +1458,18 @@ public:
   void ActOnPragmaAsCheck(SourceLocation Loc);
   void ActOnPendingAsCheck(FunctionDecl* FD);
   void ActOnDropingAsCheck(SourceLocation Loc);
+  void ActOnDoingAsCheck(FunctionDecl* FD,Stmt* Body);
+  bool CheckForVoidParam(FunctionDecl* FD,Stmt* Body);
+  bool CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body);
+  bool CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body);
+  bool CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body);
+  bool CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body);
+  /*TODO:Checks should be Implement For PRJ003*/
+  bool CheckForUnsignedVarAssigningMinusValue(FunctionDecl* FD,Stmt* Body);
+  bool CheckForSignedVarUsingBitOperation(FunctionDecl* FD,Stmt* Body);
+  bool CheckForUnconstrainedArray(FunctionDecl* FD,Stmt* Body);
+
+
 
   bool SetParamDefaultArgument(ParmVarDecl *Param, Expr *DefaultArg,
                                SourceLocation EqualLoc);

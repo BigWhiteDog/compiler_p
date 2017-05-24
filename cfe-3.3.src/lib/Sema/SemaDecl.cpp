@@ -8623,6 +8623,20 @@ void Sema::ActOnDropingAsCheck(SourceLocation loc)
         }
     }
 }
+void Sema::ActOnDoingAsCheck(FunctionDecl* FD,Stmt* Body)
+{
+    
+    CheckForVoidParam         (FD, Body);
+    CheckForUnboundedArray    (FD, Body);
+    CheckForEmptyElseStmt     (FD, Body);
+    CheckForBreakInSwitchStmt (FD, Body);
+    CheckForMultiLevelPointer (FD, Body);
+    
+    CheckForUnsignedVarAssigningMinusValue(FD, Body);
+    CheckForSignedVarUsingBitOperation    (FD, Body);
+    CheckForUnconstrainedArray            (FD, Body);
+    return ;
+}
 Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Declarator &D) {
   assert(getCurFunctionDecl() == 0 && "Function parsing confused");
   assert(D.isFunctionDeclarator() && "Not a function declarator!");
@@ -9021,7 +9035,8 @@ Decl *Sema::ActOnFinishFunctionBody(Decl *dcl, Stmt *Body,
     // Verify this.
     if (FD && isa<CXXConstructorDecl>(FD) && isa<CXXTryStmt>(Body))
       DiagnoseReturnInConstructorExceptionHandler(cast<CXXTryStmt>(Body));
-    
+    if (FD && FD->isAsCheck())
+        ActOnDoingAsCheck(FD,Body);
     // Verify that gotos and switch cases don't jump into scopes illegally.
     if (getCurFunction()->NeedsScopeChecking() &&
         !dcl->isInvalidDecl() &&

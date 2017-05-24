@@ -1119,7 +1119,7 @@ Decl *Parser::ParseFunctionDefinition(ParsingDeclarator &D,
   // Late attributes are parsed in the same scope as the function body.
   if (LateParsedAttrs)
     ParseLexedAttributeList(*LateParsedAttrs, Res, false, true);
-
+  //Actions.ActOnStartOfFunctionStatementBody();
   return ParseFunctionStatementBody(Res, BodyScope);
 }
 
