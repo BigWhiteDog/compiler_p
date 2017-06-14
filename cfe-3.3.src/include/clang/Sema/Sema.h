@@ -1464,6 +1464,10 @@ public:
   bool CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body);
   bool CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body);
   bool CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body);
+  void findSwitch(const Stmt* S);
+  void checkCaseAndBreak(const Stmt *S);
+  void printStmtLoc(const Stmt* S,const char* info);
+  void printLocation(SourceLocation Loc);
   /*TODO:Checks should be Implement For PRJ003*/
   bool CheckForUnsignedVarAssigningMinusValue(FunctionDecl* FD,Stmt* Body);
   bool CheckForSignedVarUsingBitOperation(FunctionDecl* FD,Stmt* Body);
