@@ -38,6 +38,7 @@
 #include "llvm/Support/ConvertUTF.h"
 #include "llvm/Support/raw_ostream.h"
 #include <limits>
+#include <stack>
 using namespace clang;
 using namespace sema;
 
@@ -6904,6 +6905,7 @@ bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
 }
 bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
 {
+    findSwitch(Body);
     return false;
 }
 bool Sema::CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body)
@@ -6925,4 +6927,143 @@ bool Sema::CheckForSignedVarUsingBitOperation(FunctionDecl* FD,Stmt* Body)
 bool Sema::CheckForUnconstrainedArray(FunctionDecl* FD,Stmt* Body)
 {
     return false;
+}
+void Sema::findSwitch(const Stmt* S)
+{
+    if(!S)return ;
+    switch(S->getStmtClass())
+    {
+        case Stmt::SwitchStmtClass:
+            checkCaseAndBreak(S);
+            break;
+        default:
+            for(Stmt::const_child_range CI = S->children();CI;++CI){
+                if(*CI != NULL)findSwitch(*CI);
+            }
+    }
+    return;
+}
+void Sema::checkCaseAndBreak(const Stmt *S)
+{
+    const bool debug = false;
+
+    bool needBreak = false;
+    const Stmt* lastCaseStmt = NULL;
+    Stmt::const_child_range CI = S->children();
+    std::stack<Stmt::const_child_range> vstack;
+    
+    /***** TODO: check all the branch has break 
+    std::stack<Stmt::const_child_range> bstack;
+    int branchcount = 0;
+    int break_count = 0;
+    bool brachBreak =false;
+    *****/
+    if(debug)llvm::errs() << "start while\n";
+    while (CI) {
+        if(debug)llvm::errs() << "still while ";
+        const Stmt* subStmt = *CI;
+        if(*CI == NULL)
+        {
+            ++CI;
+            continue;
+        }
+        if(debug)llvm::errs() << subStmt->getStmtClassName() << "\n";
+        switch(subStmt->getStmtClass())
+        {
+            case Stmt::DefaultStmtClass:
+                if(needBreak){
+                    printStmtLoc(lastCaseStmt," Error : Missing break.");
+                }
+                needBreak = false;
+                lastCaseStmt = subStmt;
+                vstack.push(CI);
+                CI = subStmt->children();
+                continue;
+            case Stmt::CaseStmtClass:
+                if(needBreak){
+                    printStmtLoc(lastCaseStmt," Error : Missing break.");
+                }
+                needBreak = true;
+                lastCaseStmt = subStmt;
+                vstack.push(CI);
+                CI = subStmt->children();
+                if(debug)llvm::errs() << "push\n";
+                continue;
+            case Stmt::BreakStmtClass://find break stmt at same level.
+                if(needBreak)needBreak = false;
+                break;
+            case Stmt::IfStmtClass:
+                if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
+                {
+                    findSwitch(dyn_cast<IfStmt>(subStmt)->getThen());
+                    findSwitch(dyn_cast<IfStmt>(subStmt)->getElse());
+                }
+                break;
+            case Stmt::DoStmtClass:
+                if(dyn_cast<DoStmt>(subStmt))
+                {
+                    findSwitch(dyn_cast<DoStmt>(subStmt)->getBody());
+                }
+                break;
+            case Stmt::WhileStmtClass:
+                if(dyn_cast<WhileStmt>(subStmt))
+                {
+                    findSwitch(dyn_cast<WhileStmt>(subStmt)->getBody());
+                }
+                break;
+            case Stmt::ForStmtClass:
+                if(dyn_cast<ForStmt>(subStmt))
+                {
+                    findSwitch(dyn_cast<ForStmt>(subStmt)->getBody());
+                }
+                break;
+            case Stmt::SwitchStmtClass://another switch inside
+                checkCaseAndBreak(subStmt);
+                break;
+            case Stmt::CompoundStmtClass:
+                if(subStmt->children())
+                {
+                    if(debug)llvm::errs() << "push\n";
+                    vstack.push(CI);
+                    CI = subStmt->children();
+                    continue;
+                }
+                else break;
+            default:
+                break;
+        }
+        ++CI;
+        while(!CI&&!vstack.empty())
+        {
+            CI = vstack.top();
+            vstack.pop();
+            if(debug)llvm::errs() << "pop\n";
+            ++CI;
+        }
+    }// while
+    //The needBreak must be false
+    if(needBreak){
+        //lost break, print Error info
+        printStmtLoc(lastCaseStmt," Error : Missing break.");
+    }
+    return;
+}
+void Sema::printStmtLoc(const Stmt* S,const char* info)
+{
+    llvm::errs() << info;
+    printLocation(S->getLocStart());
+    llvm::errs()<<"\n\n";
+    return;
+}
+void Sema::printLocation(SourceLocation Loc)
+{
+    // The format we print out is line:col.
+    PresumedLoc PLoc = getSourceManager().getPresumedLoc(Loc);
+    if (PLoc.isInvalid()) {
+        llvm::errs() << " NULL ";
+        return;
+    }
+    llvm::errs() << " line" << ':' << PLoc.getLine();
+    llvm::errs() << " col" << ':' << PLoc.getColumn();
+    return;
 }
