@@ -6906,10 +6906,12 @@ bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
 bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
 {
     findSwitch(Body);
+    //find_if_else(Body);
     return false;
 }
 bool Sema::CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body)
 {
+    findSwitch(Body);
     return false;
 }
 bool Sema::CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body)
@@ -6928,7 +6930,8 @@ bool Sema::CheckForUnconstrainedArray(FunctionDecl* FD,Stmt* Body)
 {
     return false;
 }
-void Sema::findSwitch(const Stmt* S)
+
+void Sema::asCheck_entry(const Stmt* S)
 {
     if(!S)return ;
     switch(S->getStmtClass())
@@ -6936,13 +6939,177 @@ void Sema::findSwitch(const Stmt* S)
         case Stmt::SwitchStmtClass:
             checkCaseAndBreak(S);
             break;
-        default:
-            for(Stmt::const_child_range CI = S->children();CI;++CI){
-                if(*CI != NULL)findSwitch(*CI);
-            }
+        case Stmt::IfStmtClass:
+            checkNoElse(S);
+            break;
+        case Stmt::DeclStmtClass:
+            checkDeclStmt(S);
+            break;
+    }
+    for(Stmt::const_child_range CI = S->children();CI;++CI){
+        if(*CI != NULL)asCheck_entry(*CI);
     }
     return;
 }
+
+
+void Sema::checkDeclStmt(const Stmt* subStmt) { // 当发现变量定义时该接口被调用
+    if(!subStmt) return;
+    const DeclStmt* DS;
+    const ValueDecl* VD;
+    const RecordDecl *RD;
+    const TypedefDecl *TdD;
+    QualType QT; 
+    DeclGroupRef::iterator E,I;
+    DeclGroupRef DGrp;
+    
+
+    if(subStmt->getStmtClass()==Stmt::DeclStmtClass){
+        DS = dyn_cast<DeclStmt>(subStmt);
+        DGrp = DS->getDeclGroup();
+        for ( I = DGrp.begin(), E = DGrp.end(); I != E; ++I) {  // check each decl in DeclStmt
+            VD = dyn_cast_or_null<VarDecl>(*I);
+            if (VD) {  // ValueDecl
+                QT = VD->getType();
+                if (checkdepth(QT))
+                    printDeclLoc(VD," Error : MultiPointer.");
+            }
+            RD = dyn_cast_or_null<RecordDecl>(*I);
+            if (RD) {   // RecordDecl --> struct
+                checkRecordDecl(RD);
+            }
+            TdD = dyn_cast_or_null<TypedefDecl>(*I);
+            if (TdD) {  // TypedefDecl
+                QT = TdD->getUnderlyingType();
+                if (checkdepth(QT))
+                    printDeclLoc(TdD," Error : MultiPointer.");
+            }
+        }
+    }
+}
+
+void Sema::checkRecordDecl(const RecordDecl *RD){
+    //RecordDecl::field_iterator FE,FI;
+    const ValueDecl* VD;
+    const RecordDecl *RD1;
+    QualType QT;
+    const FieldDecl *F;
+    
+    for (DeclContext::decl_iterator I = RD->decls_begin(), E = RD->decls_end(); I!=E; ++I){
+        RD1 = dyn_cast_or_null<RecordDecl>(*I);
+        if (RD1){
+            checkRecordDecl(RD1);
+        }else{ 
+            F = dyn_cast_or_null<FieldDecl>(*I); 
+            if(F){
+                QT = F->getType();
+                if (checkdepth(QT))
+                    printDeclLoc(F," Error : MultiPointer.");
+            }
+        }
+    } 
+}
+
+bool Sema::checkdepth(QualType QT) {
+    int pdepth = 0;
+    // check pointer level
+    for ( ; QT->isPointerType(); QT = QT->getPointeeType()) {
+        ++pdepth;
+    }
+    if (pdepth >= 2){
+        return true;
+    }
+    return false;
+}
+
+
+void Sema::checkNoElse(const Stmt *S)
+{
+    Stmt* else_stmt =  (dyn_cast<IfStmt>S)->getElse();
+    if(else_stmt==NULL)
+        printStmtLoc(else_stmt," Error : If stmt miss else stmt.");
+    return;
+}
+
+/*bool Sema::find_break_in_if(const Stmt *S)
+{
+    if(S==NULL)
+        return false;
+    if(find_break_in_if(dyn_cast<IfStmt>(S)->getThen()) \
+        &&find_break_in_if(dyn_cast<IfStmt>(S)->getElse()))
+        return true;
+
+    bool has_break=false;
+
+    Stmt::const_child_range CI = S->children();
+    std::stack<Stmt::const_child_range> vstack;
+
+    while(CI)
+    {
+        const Stmt* subStmt = *CI;
+        if(*CI == NULL)
+        {
+            ++CI;
+            continue;
+        }
+        if(debug)llvm::errs() << subStmt->getStmtClassName() << "\n";
+        switch(subStmt->getStmtClass())
+        {
+            case Stmt::DefaultStmtClass:
+                if(needBreak){
+                    printStmtLoc(lastCaseStmt," Error : Missing break.");
+                }
+                needBreak = false;
+                lastCaseStmt = subStmt;
+                vstack.push(CI);
+                CI = subStmt->children();
+                continue;
+            case Stmt::CaseStmtClass:
+                if(needBreak){
+                    printStmtLoc(lastCaseStmt," Error : Missing break.");
+                }
+                needBreak = true;
+                lastCaseStmt = subStmt;
+                vstack.push(CI);
+                CI = subStmt->children();
+                if(debug)llvm::errs() << "push\n";
+                continue;
+            case Stmt::BreakStmtClass://find break stmt at same level.
+                if(needBreak)needBreak = false;
+                break;
+            // case Stmt::IfStmtClass:
+            //     if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
+            //     {
+            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getThen());
+            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getElse());
+            //     }
+            //     break;
+            case Stmt::CompoundStmtClass:
+                if(subStmt->children())
+                {
+                    if(debug)llvm::errs() << "push\n";
+                    vstack.push(CI);
+                    CI = subStmt->children();
+                    continue;
+                }
+                else break;
+            default:
+                break;
+        }
+        ++CI;
+        while(!CI&&!vstack.empty())
+        {
+            CI = vstack.top();
+            vstack.pop();
+            if(debug)llvm::errs() << "pop\n";
+            ++CI;
+        }
+    }
+
+
+    return false;
+}
+*/
 void Sema::checkCaseAndBreak(const Stmt *S)
 {
     const bool debug = false;
@@ -6992,34 +7159,34 @@ void Sema::checkCaseAndBreak(const Stmt *S)
             case Stmt::BreakStmtClass://find break stmt at same level.
                 if(needBreak)needBreak = false;
                 break;
-            case Stmt::IfStmtClass:
-                if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
-                {
-                    findSwitch(dyn_cast<IfStmt>(subStmt)->getThen());
-                    findSwitch(dyn_cast<IfStmt>(subStmt)->getElse());
-                }
-                break;
-            case Stmt::DoStmtClass:
-                if(dyn_cast<DoStmt>(subStmt))
-                {
-                    findSwitch(dyn_cast<DoStmt>(subStmt)->getBody());
-                }
-                break;
-            case Stmt::WhileStmtClass:
-                if(dyn_cast<WhileStmt>(subStmt))
-                {
-                    findSwitch(dyn_cast<WhileStmt>(subStmt)->getBody());
-                }
-                break;
-            case Stmt::ForStmtClass:
-                if(dyn_cast<ForStmt>(subStmt))
-                {
-                    findSwitch(dyn_cast<ForStmt>(subStmt)->getBody());
-                }
-                break;
-            case Stmt::SwitchStmtClass://another switch inside
-                checkCaseAndBreak(subStmt);
-                break;
+            // case Stmt::IfStmtClass:
+            //     if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
+            //     {
+            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getThen());
+            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getElse());
+            //     }
+            //     break;
+            // case Stmt::DoStmtClass:
+            //     if(dyn_cast<DoStmt>(subStmt))
+            //     {
+            //         findSwitch(dyn_cast<DoStmt>(subStmt)->getBody());
+            //     }
+            //     break;
+            // case Stmt::WhileStmtClass:
+            //     if(dyn_cast<WhileStmt>(subStmt))
+            //     {
+            //         findSwitch(dyn_cast<WhileStmt>(subStmt)->getBody());
+            //     }
+            //     break;
+            // case Stmt::ForStmtClass:
+            //     if(dyn_cast<ForStmt>(subStmt))
+            //     {
+            //         findSwitch(dyn_cast<ForStmt>(subStmt)->getBody());
+            //     }
+            //     break;
+            // case Stmt::SwitchStmtClass://another switch inside
+            //     checkCaseAndBreak(subStmt);
+            //     break;
             case Stmt::CompoundStmtClass:
                 if(subStmt->children())
                 {

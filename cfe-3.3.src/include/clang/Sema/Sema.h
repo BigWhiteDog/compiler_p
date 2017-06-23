@@ -1464,10 +1464,18 @@ public:
   bool CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body);
   bool CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body);
   bool CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body);
-  void findSwitch(const Stmt* S);
+  void asCheck_entry(const Stmt* S);
   void checkCaseAndBreak(const Stmt *S);
   void printStmtLoc(const Stmt* S,const char* info);
   void printLocation(SourceLocation Loc);
+
+  void checkNoElse(const Stmt *S);
+
+  void checkDeclStmt(const Stmt* subStmt);
+  void checkRecordDecl(const RecordDecl *RD);
+  bool checkdepth(QualType QT);
+
+
   /*TODO:Checks should be Implement For PRJ003*/
   bool CheckForUnsignedVarAssigningMinusValue(FunctionDecl* FD,Stmt* Body);
   bool CheckForSignedVarUsingBitOperation(FunctionDecl* FD,Stmt* Body);
