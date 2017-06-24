@@ -7025,91 +7025,12 @@ bool Sema::checkdepth(QualType QT) {
 
 void Sema::checkNoElse(const Stmt *S)
 {
-    Stmt* else_stmt =  (dyn_cast<IfStmt>S)->getElse();
+    Stmt* else_stmt =  (dyn_cast<IfStmt>(S))->getElse();
     if(else_stmt==NULL)
         printStmtLoc(else_stmt," Error : If stmt miss else stmt.");
     return;
 }
 
-/*bool Sema::find_break_in_if(const Stmt *S)
-{
-    if(S==NULL)
-        return false;
-    if(find_break_in_if(dyn_cast<IfStmt>(S)->getThen()) \
-        &&find_break_in_if(dyn_cast<IfStmt>(S)->getElse()))
-        return true;
-
-    bool has_break=false;
-
-    Stmt::const_child_range CI = S->children();
-    std::stack<Stmt::const_child_range> vstack;
-
-    while(CI)
-    {
-        const Stmt* subStmt = *CI;
-        if(*CI == NULL)
-        {
-            ++CI;
-            continue;
-        }
-        if(debug)llvm::errs() << subStmt->getStmtClassName() << "\n";
-        switch(subStmt->getStmtClass())
-        {
-            case Stmt::DefaultStmtClass:
-                if(needBreak){
-                    printStmtLoc(lastCaseStmt," Error : Missing break.");
-                }
-                needBreak = false;
-                lastCaseStmt = subStmt;
-                vstack.push(CI);
-                CI = subStmt->children();
-                continue;
-            case Stmt::CaseStmtClass:
-                if(needBreak){
-                    printStmtLoc(lastCaseStmt," Error : Missing break.");
-                }
-                needBreak = true;
-                lastCaseStmt = subStmt;
-                vstack.push(CI);
-                CI = subStmt->children();
-                if(debug)llvm::errs() << "push\n";
-                continue;
-            case Stmt::BreakStmtClass://find break stmt at same level.
-                if(needBreak)needBreak = false;
-                break;
-            // case Stmt::IfStmtClass:
-            //     if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
-            //     {
-            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getThen());
-            //         // findSwitch(dyn_cast<IfStmt>(subStmt)->getElse());
-            //     }
-            //     break;
-            case Stmt::CompoundStmtClass:
-                if(subStmt->children())
-                {
-                    if(debug)llvm::errs() << "push\n";
-                    vstack.push(CI);
-                    CI = subStmt->children();
-                    continue;
-                }
-                else break;
-            default:
-                break;
-        }
-        ++CI;
-        while(!CI&&!vstack.empty())
-        {
-            CI = vstack.top();
-            vstack.pop();
-            if(debug)llvm::errs() << "pop\n";
-            ++CI;
-        }
-    }
-
-
-    return false;
-}
-*/
 void Sema::checkCaseAndBreak(const Stmt *S)
 {
     const bool debug = false;
@@ -7213,6 +7134,14 @@ void Sema::checkCaseAndBreak(const Stmt *S)
         //lost break, print Error info
         printStmtLoc(lastCaseStmt," Error : Missing break.");
     }
+    return;
+}
+
+void Sema::printDeclLoc(const Decl* D,const char* info)
+{
+    llvm::errs() << info;
+    printLocation(D->getLocStart());
+    llvm::errs()<<"\n\n";
     return;
 }
 void Sema::printStmtLoc(const Stmt* S,const char* info)
