@@ -1468,7 +1468,7 @@ public:
   void checkCaseAndBreak(const Stmt *S);
   void printStmtLoc(const Stmt* S,const char* info);
   void printLocation(SourceLocation Loc);
-  void Sema::printDeclLoc(const Decl* D,const char* info);
+  void printDeclLoc(const Decl* D,const char* info);
   void checkNoElse(const Stmt *S);
 
   void checkDeclStmt(const Stmt* subStmt);
