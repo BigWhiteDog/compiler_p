@@ -6905,13 +6905,13 @@ bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
 }
 bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
 {
-    findSwitch(Body);
+    // findSwitch(Body);
     //find_if_else(Body);
     return false;
 }
 bool Sema::CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body)
 {
-    findSwitch(Body);
+    // findSwitch(Body);
     return false;
 }
 bool Sema::CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body)
@@ -6944,6 +6944,8 @@ void Sema::asCheck_entry(const Stmt* S)
             break;
         case Stmt::DeclStmtClass:
             checkDeclStmt(S);
+            break;
+        default:
             break;
     }
     for(Stmt::const_child_range CI = S->children();CI;++CI){
@@ -7025,7 +7027,7 @@ bool Sema::checkdepth(QualType QT) {
 
 void Sema::checkNoElse(const Stmt *S)
 {
-    Stmt* else_stmt =  (dyn_cast<IfStmt>(S))->getElse();
+    const Stmt* else_stmt =  (dyn_cast<IfStmt>(S))->getElse();
     if(else_stmt==NULL)
         printStmtLoc(else_stmt," Error : If stmt miss else stmt.");
     return;
