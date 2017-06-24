@@ -7029,7 +7029,7 @@ void Sema::checkNoElse(const Stmt *S)
 {
     const Stmt* else_stmt =  (dyn_cast<IfStmt>(S))->getElse();
     if(else_stmt==NULL)
-        printStmtLoc(else_stmt," Error : If stmt miss else stmt.");
+        printStmtLoc(S," Error : If stmt miss else stmt.");
     return;
 }
 
