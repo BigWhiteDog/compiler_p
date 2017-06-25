@@ -7018,6 +7018,9 @@ bool Sema::checkdepth(QualType QT) {
     for ( ; QT->isPointerType(); QT = QT->getPointeeType()) {
         ++pdepth;
     }
+    if (QT->isRecordType()){
+        checkRecordDecl(QT->getAsStructureType()->getDecl());
+    }
     if (pdepth >= 2){
         return true;
     }
