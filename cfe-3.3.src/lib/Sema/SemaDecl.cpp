@@ -8628,8 +8628,8 @@ void Sema::ActOnDoingAsCheck(FunctionDecl* FD,Stmt* Body)
     if(FD&&Body)
     {
         asCheck_entry(Body);
-        /*CheckForVoidParam         (FD, Body);
         CheckForUnboundedArray    (FD, Body);
+        /*CheckForVoidParam         (FD, Body);
         CheckForEmptyElseStmt     (FD, Body);
         CheckForBreakInSwitchStmt (FD, Body);
         CheckForMultiLevelPointer (FD, Body);
