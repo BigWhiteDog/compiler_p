@@ -689,9 +689,12 @@ private:
 
     /// \brief Whether this variable is (C++0x) constexpr.
     unsigned IsConstexpr : 1;
+    
+
   };
   enum { NumVarDeclBits = 12 };
-
+  //asCheck unbounded
+  unsigned IsRefilledBoundary : 1;
   friend class ASTDeclReader;
   friend class StmtIteratorBase;
 
@@ -734,7 +737,7 @@ protected:
   VarDecl(Kind DK, DeclContext *DC, SourceLocation StartLoc,
           SourceLocation IdLoc, IdentifierInfo *Id,
           QualType T, TypeSourceInfo *TInfo, StorageClass SC)
-    : DeclaratorDecl(DK, DC, IdLoc, Id, T, TInfo, StartLoc), Init() {
+    : DeclaratorDecl(DK, DC, IdLoc, Id, T, TInfo, StartLoc), Init(),IsRefilledBoundary(false) {
     assert(sizeof(VarDeclBitfields) <= sizeof(unsigned));
     assert(sizeof(ParmVarDeclBitfields) <= sizeof(unsigned));
     AllBits = 0;
@@ -1123,6 +1126,10 @@ public:
   bool isConstexpr() const { return VarDeclBits.IsConstexpr; }
   void setConstexpr(bool IC) { VarDeclBits.IsConstexpr = IC; }
 
+  ///asCheck 
+  bool getIsRefilledBoundary() const {return IsRefilledBoundary;}
+  void setIsRefilledBoundary(bool refilled){IsRefilledBoundary=refilled;}
+
   /// \brief If this variable is an instantiated static data member of a
   /// class template specialization, returns the templated static data member
   /// from which it was instantiated.
@@ -1410,6 +1417,7 @@ private:
   bool IsLateTemplateParsed : 1;
   bool IsConstexpr : 1;
   bool HasAsCheck : 1;
+  bool VoidArg : 1;
   /// \brief Indicates if the function was a definition but its body was
   /// skipped.
   unsigned HasSkippedBody : 1;
@@ -1495,7 +1503,7 @@ protected:
       IsInline(isInlineSpecified), IsInlineSpecified(isInlineSpecified),
       IsVirtualAsWritten(false), IsPure(false), HasInheritedPrototype(false),
       HasWrittenPrototype(true), IsDeleted(false), IsTrivial(false),
-      IsDefaulted(false), IsExplicitlyDefaulted(false),
+      IsDefaulted(false), IsExplicitlyDefaulted(false),HasAsCheck(false),VoidArg(false),
       HasImplicitReturnZero(false), IsLateTemplateParsed(false),
       IsConstexpr(isConstexprSpecified), HasSkippedBody(false),
       EndRangeLoc(NameInfo.getEndLoc()),
@@ -1677,6 +1685,8 @@ public:
   bool isAsCheck() const { return HasAsCheck; }
   void setAsCheck(bool asCheck) { HasAsCheck = asCheck; }
 
+  bool isVoidArg() const { return VoidArg; }
+  void setVoidArg(bool va) { VoidArg = va; }
   /// \brief Whether this function has been deleted.
   ///
   /// A function that is "deleted" (via the C++0x "= delete" syntax)

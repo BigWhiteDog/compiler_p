@@ -6901,7 +6901,7 @@ bool Sema::CheckForVoidParam(FunctionDecl* FD,Stmt* Body)
 }
 bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
 {
-    SourceManager* SM = &getSourceManager();
+    /*SourceManager* SM = &getSourceManager();
     std::pair<FileID, unsigned> locInfo = SM->getDecomposedLoc(Body->getLocStart());
     std::pair<FileID, unsigned> endLoc  = SM->getDecomposedLoc(Body->getLocEnd());
     bool invalidTemp = false;
@@ -6938,7 +6938,7 @@ bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
     	lexer->Lex(tok);
         locInfo = SM->getDecomposedLoc(tok.getLocation());
     }
-    delete lexer;
+    delete lexer;*/
     return false;
 }
 bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
@@ -6997,6 +6997,7 @@ void Sema::checkDeclStmt(const Stmt* subStmt) { // 当发现变量定义时该�
     if(!subStmt) return;
     const DeclStmt* DS;
     const ValueDecl* VD;
+    const VarDecl* VarD;
     const RecordDecl *RD;
     const TypedefDecl *TdD;
     QualType QT; 
@@ -7008,11 +7009,15 @@ void Sema::checkDeclStmt(const Stmt* subStmt) { // 当发现变量定义时该�
         DS = dyn_cast<DeclStmt>(subStmt);
         DGrp = DS->getDeclGroup();
         for ( I = DGrp.begin(), E = DGrp.end(); I != E; ++I) {  // check each decl in DeclStmt
-            VD = dyn_cast_or_null<VarDecl>(*I);
+            VD = VarD = dyn_cast_or_null<VarDecl>(*I);
             if (VD) {  // ValueDecl
                 QT = VD->getType();
                 if (checkdepth(QT))
                     printDeclLoc(VD," Error : MultiPointer.");
+            }
+            if(VarD){  //VarDecl
+                if (VarD->getIsRefilledBoundary())
+                    printDeclLoc(VarD," Error : Missing boundary.");
             }
             RD = dyn_cast_or_null<RecordDecl>(*I);
             if (RD) {   // RecordDecl --> struct

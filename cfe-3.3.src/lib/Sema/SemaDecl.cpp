@@ -7528,7 +7528,12 @@ void Sema::AddInitializerToDecl(Decl *RealDecl, Expr *Init,
   //   int ary[] = { 1, 3, 5 };
   // "ary" transitions from an IncompleteArrayType to a ConstantArrayType.
   if (!VDecl->isInvalidDecl() && (DclT != SavT))
+  {
+    VDecl->setIsRefilledBoundary(true);//delay message until doing asCheck
+    //printLocation(VDecl->getLocation());
+    //llvm::errs()<<" Error : Missing boundary.\n\n";//asCheck unbounded
     VDecl->setType(DclT);
+  }
 
   if (!VDecl->isInvalidDecl()) {
     checkUnsafeAssigns(VDecl->getLocation(), VDecl->getType(), Init);
@@ -8581,7 +8586,6 @@ void Sema::ActOnPragmaAsCheck(SourceLocation Loc){
 void Sema::ActOnPendingAsCheck(FunctionDecl* FD)
 {
   if(FD){
-    FD->setAsCheck(false);
     std::pair<FileID,unsigned> ps = getSourceManager().getDecomposedLoc(FD->getLocStart());
     std::list<unsigned>* Locs = &AsCheckML[ps.first]; 
     {
@@ -8771,10 +8775,18 @@ Decl *Sema::ActOnStartOfFunctionDef(Scope *FnBodyScope, Decl *D) {
       TypeSourceInfo* TI = PossibleZeroParamPrototype->getTypeSourceInfo();
       TypeLoc TL = TI->getTypeLoc();
       if (FunctionNoProtoTypeLoc FTL = TL.getAs<FunctionNoProtoTypeLoc>())
+      {
         Diag(PossibleZeroParamPrototype->getLocation(), 
              diag::note_declaration_not_a_prototype)
           << PossibleZeroParamPrototype 
           << FixItHint::CreateInsertion(FTL.getRParenLoc(), "void");
+        if(false&&FD&&FD->isAsCheck())//enable check for func(void) ?
+        {
+          //FD->setVoidArg(true);
+          printLocation(FTL.getRParenLoc());
+          llvm::errs()<<" Error : Missing void.\n\n";//asCheck void
+        }
+      }
     }
   }
 
