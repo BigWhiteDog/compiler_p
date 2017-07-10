@@ -7530,8 +7530,6 @@ void Sema::AddInitializerToDecl(Decl *RealDecl, Expr *Init,
   if (!VDecl->isInvalidDecl() && (DclT != SavT))
   {
     VDecl->setIsRefilledBoundary(true);//delay message until doing asCheck
-    //printLocation(VDecl->getLocation());
-    //llvm::errs()<<" Error : Missing boundary.\n\n";//asCheck unbounded
     VDecl->setType(DclT);
   }
 

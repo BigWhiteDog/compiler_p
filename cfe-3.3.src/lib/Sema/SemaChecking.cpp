@@ -6901,55 +6901,16 @@ bool Sema::CheckForVoidParam(FunctionDecl* FD,Stmt* Body)
 }
 bool Sema::CheckForUnboundedArray(FunctionDecl* FD,Stmt* Body)
 {
-    /*SourceManager* SM = &getSourceManager();
-    std::pair<FileID, unsigned> locInfo = SM->getDecomposedLoc(Body->getLocStart());
-    std::pair<FileID, unsigned> endLoc  = SM->getDecomposedLoc(Body->getLocEnd());
-    bool invalidTemp = false;
-    llvm::StringRef file = SM->getBufferData(locInfo.first, &invalidTemp);
-    if (invalidTemp)
-        return false;
-    const char *tokenBegin = file.data() + locInfo.second;
-
-    Lexer *lexer = new Lexer(SM->getLocForStartOfFile(locInfo.first), getLangOpts(), file.begin(), tokenBegin, file.end());
-
-    Token tok;
-    bool getl=false;
-    lexer->Lex(tok);
-    locInfo = SM->getDecomposedLoc(tok.getLocation());
-    while(locInfo.second < endLoc.second)
-    {
-        if(tok.is(tok::l_square))
-        {
-            getl = true;
-        }
-        else if(tok.is(tok::r_square))
-        {
-            if(getl)
-            {
-                printLocation(tok.getLocation());
-                llvm::errs()<<" Error : Missing boundary.";
-                llvm::errs()<<"\n\n";
-            }
-        }
-        else
-        {
-            getl = false;
-        }
-    	lexer->Lex(tok);
-        locInfo = SM->getDecomposedLoc(tok.getLocation());
-    }
-    delete lexer;*/
     return false;
 }
 bool Sema::CheckForEmptyElseStmt(FunctionDecl* FD,Stmt* Body)
 {
-    // findSwitch(Body);
-    //find_if_else(Body);
+
     return false;
 }
 bool Sema::CheckForBreakInSwitchStmt(FunctionDecl* FD,Stmt* Body)
 {
-    // findSwitch(Body);
+
     return false;
 }
 bool Sema::CheckForMultiLevelPointer(FunctionDecl* FD,Stmt* Body)
