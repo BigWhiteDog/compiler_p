@@ -7065,6 +7065,7 @@ void Sema::checkCaseAndBreak(const Stmt *S)
             continue;
         }
         if(debug)llvm::errs() << subStmt->getStmtClassName() << "\n";
+        switch_begin:
         switch(subStmt->getStmtClass())
         {
             case Stmt::DefaultStmtClass:
@@ -7089,6 +7090,27 @@ void Sema::checkCaseAndBreak(const Stmt *S)
             case Stmt::BreakStmtClass://find break stmt at same level.
                 if(needBreak)needBreak = false;
                 break;
+            case Stmt::IfStmtClass:
+
+                 if(dyn_cast<IfStmt>(subStmt))
+
+                 {
+                     const IfStmt* ifstmt = dyn_cast<IfStmt>(subStmt);
+                     const Expr *cond = ifstmt -> getCond();
+                     const ASTContext & context = getASTContext ();
+                     bool res = false;
+                     if(cond->EvaluateAsBooleanCondition(res,context)){
+                         if(res&&ifstmt->getThen()){
+                             subStmt = ifstmt->getThen();
+                             goto switch_begin;
+                         }
+                         else if(ifstmt->getElse()){
+                             subStmt = ifstmt->getElse();
+                             goto switch_begin;
+                         }
+                     }
+                 }
+                 break;
             // case Stmt::IfStmtClass:
             //     if(dyn_cast<IfStmt>(subStmt))//FIXME:if all branch has break, should we accept the case has a break?
             //     {
